@@ -7,7 +7,7 @@ import telebot
 from flask import Flask
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "9122374513:AAHGrf3WyEFShXtEnqdHKSE7VOrJxTOp2Ow")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "9122374513:AAGwrkV1pQKhxbq7Br6B2fCswgTCOtQMcIU")
 
 PREMIUM_EMOJIS = {
     "✅": "5123248930124989216", "❌": "5210952531676504517",
