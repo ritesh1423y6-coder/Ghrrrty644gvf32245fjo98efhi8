@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 import time
 import requests
@@ -78,13 +79,17 @@ TEXTS = {
     "en": {
         "welcome_title": "Live Crypto USDT Price Bot",
         "welcome_body": (
-            "Send <code>ton</code> to get only TON's live USDT price, or send <code>rates</code> / <code>/rates</code> for all coins.\n\n"
-            "• Single coins: <code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>gram</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
+            "Send <code>ton</code> or <code>gram</code> (same coin) to get TON's live USDT rate, "
+            "or send an amount like <code>1 ton</code>, <code>2 ton</code>, or <code>/ton 1</code>.\n\n"
+            "• Single / Convert: <code>ton</code>, <code>gram</code>, <code>1 ton</code>, <code>/ton 2</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
             "• All rates: <code>/rates</code> or <code>rates</code>\n"
             "• Language: <code>/lang</code>"
         ),
         "all_title": "Live Crypto USDT Rates",
         "single_title": "{name} ({short}) Live Rate",
+        "amount_label": "Amount",
+        "unit_price_label": "1 {short} Price",
+        "total_label": "Total Value",
         "price_label": "Price",
         "change_label": "24h Change",
         "updated_label": "Updated",
@@ -97,18 +102,22 @@ TEXTS = {
         "lang_prompt": "Choose your preferred language:",
         "lang_set_en": "Language set to English.",
         "lang_set_ru": "Язык изменён на русский.",
-        "unsupported": "Unsupported coin. Send <code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>gram</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>, or <code>/rates</code>.",
+        "invalid_amount": "Invalid amount. Enter a positive number like <code>/ton 1</code> or <code>2 ton</code>.",
     },
     "ru": {
         "welcome_title": "Бот курсов криптовалют к USDT",
         "welcome_body": (
-            "Отправьте <code>ton</code> для курса только TON, или <code>rates</code> / <code>/rates</code> для всех монет.\n\n"
-            "• Отдельные монеты: <code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>gram</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
+            "Отправьте <code>ton</code> или <code>gram</code> (одна монета) для курса TON к USDT, "
+            "или укажите сумму: <code>1 ton</code>, <code>2 ton</code>, <code>/ton 1</code>.\n\n"
+            "• Монета / Конвертер: <code>ton</code>, <code>gram</code>, <code>1 ton</code>, <code>/ton 2</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
             "• Все курсы: <code>/rates</code> или <code>rates</code>\n"
             "• Язык: <code>/lang</code>"
         ),
         "all_title": "Курсы криптовалют к USDT",
         "single_title": "Курс {name} ({short})",
+        "amount_label": "Количество",
+        "unit_price_label": "Цена 1 {short}",
+        "total_label": "Итого",
         "price_label": "Цена",
         "change_label": "За 24ч",
         "updated_label": "Обновлено",
@@ -121,31 +130,30 @@ TEXTS = {
         "lang_prompt": "Выберите язык:",
         "lang_set_en": "Language set to English.",
         "lang_set_ru": "Язык изменён на русский.",
-        "unsupported": "Неподдерживаемая монета. Отправьте <code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>gram</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code> или <code>/rates</code>.",
+        "invalid_amount": "Некорректная сумма. Введите положительное число, например: <code>/ton 1</code> или <code>2 ton</code>.",
     },
 }
 
+# TON and GRAM share the exact same coin definition ("ton")
 COINS = [
-    {"key": "ton",  "short": "TON",  "name": "Toncoin",  "emoji": "💎", "kucoin": "TON-USDT",  "paprika": "ton-toncoin",      "cg": "the-open-network"},
-    {"key": "btc",  "short": "BTC",  "name": "Bitcoin",  "emoji": "🪙", "kucoin": "BTC-USDT",  "paprika": "btc-bitcoin",      "cg": "bitcoin"},
-    {"key": "eth",  "short": "ETH",  "name": "Ethereum", "emoji": "💎", "kucoin": "ETH-USDT",  "paprika": "eth-ethereum",     "cg": "ethereum"},
-    {"key": "sol",  "short": "SOL",  "name": "Solana",   "emoji": "⚡", "kucoin": "SOL-USDT",  "paprika": "sol-solana",       "cg": "solana"},
-    {"key": "gram", "short": "GRAM", "name": "Gram",     "emoji": "💠", "kucoin": "GRAM-USDT", "paprika": None,               "cg": "gram"},
-    {"key": "ltc",  "short": "LTC",  "name": "Litecoin", "emoji": "🪙", "kucoin": "LTC-USDT",  "paprika": "ltc-litecoin",     "cg": "litecoin"},
-    {"key": "xmr",  "short": "XMR",  "name": "Monero",   "emoji": "🛡", "kucoin": "XMR-USDT",  "paprika": "xmr-monero",       "cg": "monero"},
-    {"key": "xrp",  "short": "XRP",  "name": "XRP",      "emoji": "✖️", "kucoin": "XRP-USDT",  "paprika": "xrp-xrp",          "cg": "ripple"},
-    {"key": "bnb",  "short": "BNB",  "name": "BNB",      "emoji": "💰", "kucoin": "BNB-USDT",  "paprika": "bnb-binance-coin", "cg": "binancecoin"},
-    {"key": "trx",  "short": "TRX",  "name": "Tron",     "emoji": "🔺", "kucoin": "TRX-USDT",  "paprika": "trx-tron",         "cg": "tron"},
+    {"key": "ton",  "short": "TON / GRAM", "unit_short": "TON",  "name": "Toncoin / Gram", "emoji": "💎", "kucoin": "TON-USDT",  "paprika": "ton-toncoin",      "cg": "the-open-network"},
+    {"key": "btc",  "short": "BTC",        "unit_short": "BTC",  "name": "Bitcoin",        "emoji": "🪙", "kucoin": "BTC-USDT",  "paprika": "btc-bitcoin",      "cg": "bitcoin"},
+    {"key": "eth",  "short": "ETH",        "unit_short": "ETH",  "name": "Ethereum",       "emoji": "💎", "kucoin": "ETH-USDT",  "paprika": "eth-ethereum",     "cg": "ethereum"},
+    {"key": "sol",  "short": "SOL",        "unit_short": "SOL",  "name": "Solana",         "emoji": "⚡", "kucoin": "SOL-USDT",  "paprika": "sol-solana",       "cg": "solana"},
+    {"key": "ltc",  "short": "LTC",        "unit_short": "LTC",  "name": "Litecoin",       "emoji": "🪙", "kucoin": "LTC-USDT",  "paprika": "ltc-litecoin",     "cg": "litecoin"},
+    {"key": "xmr",  "short": "XMR",        "unit_short": "XMR",  "name": "Monero",         "emoji": "🛡", "kucoin": "XMR-USDT",  "paprika": "xmr-monero",       "cg": "monero"},
+    {"key": "xrp",  "short": "XRP",        "unit_short": "XRP",  "name": "XRP",            "emoji": "✖️", "kucoin": "XRP-USDT",  "paprika": "xrp-xrp",          "cg": "ripple"},
+    {"key": "bnb",  "short": "BNB",        "unit_short": "BNB",  "name": "BNB",            "emoji": "💰", "kucoin": "BNB-USDT",  "paprika": "bnb-binance-coin", "cg": "binancecoin"},
+    {"key": "trx",  "short": "TRX",        "unit_short": "TRX",  "name": "Tron",           "emoji": "🔺", "kucoin": "TRX-USDT",  "paprika": "trx-tron",         "cg": "tron"},
 ]
 
 COIN_BY_KEY = {c["key"]: c for c in COINS}
 
 ALIASES = {
-    "ton": "ton", "toncoin": "ton",
+    "ton": "ton", "toncoin": "ton", "gram": "ton", "grams": "ton",
     "btc": "btc", "bitcoin": "btc",
     "eth": "eth", "ethereum": "eth",
     "sol": "sol", "solana": "sol",
-    "gram": "gram",
     "ltc": "ltc", "litecoin": "ltc",
     "xmr": "xmr", "monero": "xmr",
     "xrp": "xrp", "ripple": "xrp",
@@ -181,6 +189,12 @@ def format_usdt(price):
     if price < 100:
         return f"${price:.2f} USDT"
     return f"${price:,.2f} USDT"
+
+
+def format_amount(amount):
+    if float(amount).is_integer():
+        return f"{int(amount):,}"
+    return f"{amount:g}"
 
 
 def fetch_kucoin_all():
@@ -268,7 +282,47 @@ def get_rates_for_keys(keys):
     return rates
 
 
-def build_single_coin_text(coin_key, user_id):
+def parse_coin_and_amount(raw_text):
+    """
+    Parses inputs like:
+      'ton' -> ('ton', 1.0)
+      'gram' -> ('ton', 1.0)
+      '1 ton' -> ('ton', 1.0)
+      '2 gram' -> ('ton', 2.0)
+      'ton 2' -> ('ton', 2.0)
+      '0.5 btc' -> ('btc', 0.5)
+    Returns (scope, amount) where scope is coin_key, 'all', or None.
+    """
+    cleaned = raw_text.strip().lower()
+    if not cleaned:
+        return "all", 1.0
+
+    if cleaned in ALL_TRIGGERS:
+        return "all", 1.0
+
+    if cleaned in ALIASES:
+        return ALIASES[cleaned], 1.0
+
+    # Pattern 1: <amount> <coin> (e.g., "1 ton", "2.5 gram", "100 sol")
+    m1 = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z]+)", cleaned)
+    if m1:
+        amt = float(m1.group(1))
+        coin_key = ALIASES.get(m1.group(2))
+        if coin_key and amt > 0:
+            return coin_key, amt
+
+    # Pattern 2: <coin> <amount> (e.g., "ton 1", "gram 2")
+    m2 = re.fullmatch(r"([a-zA-Z]+)\s+([0-9]+(?:\.[0-9]+)?)", cleaned)
+    if m2:
+        coin_key = ALIASES.get(m2.group(1))
+        amt = float(m2.group(2))
+        if coin_key and amt > 0:
+            return coin_key, amt
+
+    return None, 1.0
+
+
+def build_single_coin_text(coin_key, amount, user_id):
     c = COIN_BY_KEY.get(coin_key)
     if not c:
         return None
@@ -276,8 +330,12 @@ def build_single_coin_text(coin_key, user_id):
     data = rates.get(coin_key)
 
     title = t(user_id, "single_title").format(name=c["name"], short=c["short"])
-    price_str = format_usdt(data["price"]) if data and data["price"] is not None else "N/A"
+    unit_price = data["price"] if data and data["price"] is not None else None
     chg = data["change"] if data else None
+
+    amt_str = format_amount(amount)
+    unit_price_str = format_usdt(unit_price)
+    total_str = format_usdt(unit_price * amount) if unit_price is not None else "N/A"
 
     if chg is not None:
         trend_icon = pe("🟢") if chg >= 0 else pe("🔴")
@@ -286,10 +344,19 @@ def build_single_coin_text(coin_key, user_id):
     else:
         chg_line = ""
 
+    if amount == 1.0:
+        amount_block = f"{pe('💲')} <b>{t(user_id, 'price_label')}:</b> <code>{unit_price_str}</code>\n"
+    else:
+        amount_block = (
+            f"{pe('💰')} <b>{t(user_id, 'amount_label')}:</b> <code>{amt_str} {c['unit_short']}</code>\n"
+            f"{pe('💲')} <b>{t(user_id, 'unit_price_label').format(short=c['unit_short'])}:</b> <code>{unit_price_str}</code>\n"
+            f"{pe('💵')} <b>{t(user_id, 'total_label')}:</b> <code>{total_str}</code>\n"
+        )
+
     return (
         f"{pe(c['emoji'])} <b>{title}</b>\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        f"{pe('💲')} <b>{t(user_id, 'price_label')}:</b> <code>{price_str}</code>\n"
+        f"{amount_block}"
         f"{chg_line}"
         f"{pe('⏱')} <b>{t(user_id, 'updated_label')}:</b> <code>{time.strftime('%H:%M:%S')} IST</code>"
     )
@@ -332,12 +399,12 @@ def build_all_rates_text(user_id):
     return "\n".join(lines)
 
 
-def build_rate_keyboard(user_id, scope):
+def build_rate_keyboard(user_id, scope, amount):
     ref_label = t(user_id, "refresh_all") if scope == "all" else t(user_id, "refresh")
     close_label = t(user_id, "close")
     markup = InlineKeyboardMarkup()
     markup.row(
-        InlineKeyboardButton(ref_label, callback_data=f"ref|{scope}|{user_id}"),
+        InlineKeyboardButton(ref_label, callback_data=f"ref|{scope}|{amount:g}|{user_id}"),
         InlineKeyboardButton(close_label, callback_data=f"close|{user_id}"),
     )
     return markup
@@ -355,16 +422,13 @@ def build_lang_keyboard(user_id):
     return markup
 
 
-def send_price_response(message, scope):
+def send_price_response(message, scope, amount=1.0):
     uid = message.from_user.id
     if scope == "all":
         text = build_all_rates_text(uid)
     else:
-        text = build_single_coin_text(scope, uid)
-    if not text:
-        bot.reply_to(message, f"{pe('❌')} {t(uid, 'unsupported')}", parse_mode="HTML")
-        return
-    bot.reply_to(message, text, parse_mode="HTML", reply_markup=build_rate_keyboard(uid, scope))
+        text = build_single_coin_text(scope, amount, uid)
+    bot.reply_to(message, text, parse_mode="HTML", reply_markup=build_rate_keyboard(uid, scope, amount))
 
 
 @bot.message_handler(commands=["start", "help"])
@@ -390,41 +454,53 @@ def lang_handler(message):
 
 @bot.message_handler(commands=["rates", "all", "prices"])
 def all_rates_cmd(message):
-    send_price_response(message, "all")
+    send_price_response(message, "all", 1.0)
 
 
 @bot.message_handler(commands=list(ALIASES.keys()))
 def shortcut_cmd(message):
-    raw = message.text.split()[0][1:].lower().split("@")[0]
-    coin_key = ALIASES.get(raw)
+    uid = message.from_user.id
+    parts = message.text.split()
+    cmd_name = parts[0][1:].lower().split("@")[0]
+    coin_key = ALIASES.get(cmd_name)
+
+    amount = 1.0
+    if len(parts) > 1:
+        try:
+            amount = float(parts[1])
+            if amount <= 0:
+                raise ValueError()
+        except ValueError:
+            bot.reply_to(message, f"{pe('❌')} {t(uid, 'invalid_amount')}", parse_mode="HTML")
+            return
+
     if coin_key:
-        send_price_response(message, coin_key)
+        send_price_response(message, coin_key, amount)
 
 
 @bot.message_handler(commands=["price", "p"])
 def price_cmd(message):
+    uid = message.from_user.id
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        send_price_response(message, "all")
+        send_price_response(message, "all", 1.0)
         return
-    query = parts[1].strip().lower()
-    if query in ALL_TRIGGERS:
-        send_price_response(message, "all")
+
+    scope, amount = parse_coin_and_amount(parts[1])
+    if scope is None:
+        bot.reply_to(message, f"{pe('❌')} {t(uid, 'invalid_amount')}", parse_mode="HTML")
         return
-    coin_key = ALIASES.get(query)
-    if coin_key:
-        send_price_response(message, coin_key)
-    else:
-        send_price_response(message, "all")
+    send_price_response(message, scope, amount)
 
 
 @bot.message_handler(func=lambda m: bool(m.text and not m.text.startswith("/")))
 def text_router(message):
-    raw = message.text.strip().lower()
-    if raw in ALIASES:
-        send_price_response(message, ALIASES[raw])
+    scope, amount = parse_coin_and_amount(message.text)
+    if scope is None:
+        # Random / general rate queries show all rates
+        send_price_response(message, "all", 1.0)
     else:
-        send_price_response(message, "all")
+        send_price_response(message, scope, amount)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -465,12 +541,17 @@ def callback_handler(call):
 
     if action == "ref":
         scope = parts[1]
-        owner_id = int(parts[2])
+        amount = float(parts[2])
+        owner_id = int(parts[3])
         if uid != owner_id:
             bot.answer_callback_query(call.id, t(uid, "not_owner"), show_alert=True)
             return
 
-        new_text = build_all_rates_text(uid) if scope == "all" else build_single_coin_text(scope, uid)
+        new_text = (
+            build_all_rates_text(uid)
+            if scope == "all"
+            else build_single_coin_text(scope, amount, uid)
+        )
         if new_text:
             try:
                 bot.edit_message_text(
@@ -478,7 +559,7 @@ def callback_handler(call):
                     chat_id=call.message.chat.id,
                     message_id=call.message.message_id,
                     parse_mode="HTML",
-                    reply_markup=build_rate_keyboard(uid, scope),
+                    reply_markup=build_rate_keyboard(uid, scope, amount),
                 )
                 bot.answer_callback_query(call.id, t(uid, "updated_toast"))
             except Exception:
