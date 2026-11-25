@@ -79,11 +79,11 @@ TEXTS = {
     "en": {
         "welcome_title": "Live Crypto USDT Price Bot",
         "welcome_body": (
-            "Send <code>ton</code> or <code>gram</code> (same coin) to get TON's live USDT rate, "
-            "or send an amount like <code>1 ton</code>, <code>2 ton</code>, or <code>/ton 1</code>.\n\n"
-            "• Single / Convert: <code>ton</code>, <code>gram</code>, <code>1 ton</code>, <code>/ton 2</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
-            "• All rates: <code>/rates</code> or <code>rates</code>\n"
-            "• Language: <code>/lang</code>"
+            "{bullet} Send <code>gram</code> or <code>ton</code> (both fetch <b>GRAM</b>) for live USDT price.\n"
+            "{bullet} Send amount like <code>1 ton</code>, <code>2 gram</code>, or <code>/ton 1</code>.\n"
+            "{bullet} Coins: <code>gram</code>/<code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>.\n"
+            "{bullet} All rates: <code>/rates</code> or <code>rates</code>\n"
+            "{bullet} Language: <code>/lang</code>"
         ),
         "all_title": "Live Crypto USDT Rates",
         "single_title": "{name} ({short}) Live Rate",
@@ -107,11 +107,11 @@ TEXTS = {
     "ru": {
         "welcome_title": "Бот курсов криптовалют к USDT",
         "welcome_body": (
-            "Отправьте <code>ton</code> или <code>gram</code> (одна монета) для курса TON к USDT, "
-            "или укажите сумму: <code>1 ton</code>, <code>2 ton</code>, <code>/ton 1</code>.\n\n"
-            "• Монета / Конвертер: <code>ton</code>, <code>gram</code>, <code>1 ton</code>, <code>/ton 2</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>\n"
-            "• Все курсы: <code>/rates</code> или <code>rates</code>\n"
-            "• Язык: <code>/lang</code>"
+            "{bullet} Отправьте <code>gram</code> или <code>ton</code> (оба берут <b>GRAM</b>) для курса к USDT.\n"
+            "{bullet} Укажите сумму: <code>1 ton</code>, <code>2 gram</code> или <code>/ton 1</code>.\n"
+            "{bullet} Монеты: <code>gram</code>/<code>ton</code>, <code>btc</code>, <code>eth</code>, <code>sol</code>, <code>ltc</code>, <code>xmr</code>, <code>xrp</code>, <code>bnb</code>, <code>trx</code>.\n"
+            "{bullet} Все курсы: <code>/rates</code> или <code>rates</code>\n"
+            "{bullet} Язык: <code>/lang</code>"
         ),
         "all_title": "Курсы криптовалют к USDT",
         "single_title": "Курс {name} ({short})",
@@ -134,23 +134,23 @@ TEXTS = {
     },
 }
 
-# TON and GRAM share the exact same coin definition ("ton")
+# "ton" and "gram" both resolve to "gram" and fetch "gram"
 COINS = [
-    {"key": "ton",  "short": "TON / GRAM", "unit_short": "TON",  "name": "Toncoin / Gram", "emoji": "💎", "kucoin": "TON-USDT",  "paprika": "ton-toncoin",      "cg": "the-open-network"},
-    {"key": "btc",  "short": "BTC",        "unit_short": "BTC",  "name": "Bitcoin",        "emoji": "🪙", "kucoin": "BTC-USDT",  "paprika": "btc-bitcoin",      "cg": "bitcoin"},
-    {"key": "eth",  "short": "ETH",        "unit_short": "ETH",  "name": "Ethereum",       "emoji": "💎", "kucoin": "ETH-USDT",  "paprika": "eth-ethereum",     "cg": "ethereum"},
-    {"key": "sol",  "short": "SOL",        "unit_short": "SOL",  "name": "Solana",         "emoji": "⚡", "kucoin": "SOL-USDT",  "paprika": "sol-solana",       "cg": "solana"},
-    {"key": "ltc",  "short": "LTC",        "unit_short": "LTC",  "name": "Litecoin",       "emoji": "🪙", "kucoin": "LTC-USDT",  "paprika": "ltc-litecoin",     "cg": "litecoin"},
-    {"key": "xmr",  "short": "XMR",        "unit_short": "XMR",  "name": "Monero",         "emoji": "🛡", "kucoin": "XMR-USDT",  "paprika": "xmr-monero",       "cg": "monero"},
-    {"key": "xrp",  "short": "XRP",        "unit_short": "XRP",  "name": "XRP",            "emoji": "✖️", "kucoin": "XRP-USDT",  "paprika": "xrp-xrp",          "cg": "ripple"},
-    {"key": "bnb",  "short": "BNB",        "unit_short": "BNB",  "name": "BNB",            "emoji": "💰", "kucoin": "BNB-USDT",  "paprika": "bnb-binance-coin", "cg": "binancecoin"},
-    {"key": "trx",  "short": "TRX",        "unit_short": "TRX",  "name": "Tron",           "emoji": "🔺", "kucoin": "TRX-USDT",  "paprika": "trx-tron",         "cg": "tron"},
+    {"key": "gram", "short": "GRAM", "unit_short": "GRAM", "name": "Gram",     "emoji": "💎", "kucoin": "GRAM-USDT", "paprika": None,               "cg": "gram"},
+    {"key": "btc",  "short": "BTC",  "unit_short": "BTC",  "name": "Bitcoin",  "emoji": "🪙", "kucoin": "BTC-USDT",  "paprika": "btc-bitcoin",      "cg": "bitcoin"},
+    {"key": "eth",  "short": "ETH",  "unit_short": "ETH",  "name": "Ethereum", "emoji": "💎", "kucoin": "ETH-USDT",  "paprika": "eth-ethereum",     "cg": "ethereum"},
+    {"key": "sol",  "short": "SOL",  "unit_short": "SOL",  "name": "Solana",   "emoji": "⚡", "kucoin": "SOL-USDT",  "paprika": "sol-solana",       "cg": "solana"},
+    {"key": "ltc",  "short": "LTC",  "unit_short": "LTC",  "name": "Litecoin", "emoji": "🪙", "kucoin": "LTC-USDT",  "paprika": "ltc-litecoin",     "cg": "litecoin"},
+    {"key": "xmr",  "short": "XMR",  "unit_short": "XMR",  "name": "Monero",   "emoji": "🛡", "kucoin": "XMR-USDT",  "paprika": "xmr-monero",       "cg": "monero"},
+    {"key": "xrp",  "short": "XRP",  "unit_short": "XRP",  "name": "XRP",      "emoji": "✖️", "kucoin": "XRP-USDT",  "paprika": "xrp-xrp",          "cg": "ripple"},
+    {"key": "bnb",  "short": "BNB",  "unit_short": "BNB",  "name": "BNB",      "emoji": "💰", "kucoin": "BNB-USDT",  "paprika": "bnb-binance-coin", "cg": "binancecoin"},
+    {"key": "trx",  "short": "TRX",  "unit_short": "TRX",  "name": "Tron",     "emoji": "🔺", "kucoin": "TRX-USDT",  "paprika": "trx-tron",         "cg": "tron"},
 ]
 
 COIN_BY_KEY = {c["key"]: c for c in COINS}
 
 ALIASES = {
-    "ton": "ton", "toncoin": "ton", "gram": "ton", "grams": "ton",
+    "gram": "gram", "grams": "gram", "ton": "gram", "toncoin": "gram",
     "btc": "btc", "bitcoin": "btc",
     "eth": "eth", "ethereum": "eth",
     "sol": "sol", "solana": "sol",
@@ -265,7 +265,9 @@ def fetch_coingecko_batch(missing_coins):
 
 
 def get_rates_for_keys(keys):
-    target_coins = [COIN_BY_KEY[k] for k in keys if k in COIN_BY_KEY]
+    # Normalize "ton" -> "gram" before fetching
+    normalized = [ALIASES.get(k, k) for k in keys]
+    target_coins = [COIN_BY_KEY[k] for k in normalized if k in COIN_BY_KEY]
     rates = fetch_kucoin_all()
 
     for c in target_coins:
@@ -283,16 +285,6 @@ def get_rates_for_keys(keys):
 
 
 def parse_coin_and_amount(raw_text):
-    """
-    Parses inputs like:
-      'ton' -> ('ton', 1.0)
-      'gram' -> ('ton', 1.0)
-      '1 ton' -> ('ton', 1.0)
-      '2 gram' -> ('ton', 2.0)
-      'ton 2' -> ('ton', 2.0)
-      '0.5 btc' -> ('btc', 0.5)
-    Returns (scope, amount) where scope is coin_key, 'all', or None.
-    """
     cleaned = raw_text.strip().lower()
     if not cleaned:
         return "all", 1.0
@@ -303,7 +295,6 @@ def parse_coin_and_amount(raw_text):
     if cleaned in ALIASES:
         return ALIASES[cleaned], 1.0
 
-    # Pattern 1: <amount> <coin> (e.g., "1 ton", "2.5 gram", "100 sol")
     m1 = re.fullmatch(r"([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z]+)", cleaned)
     if m1:
         amt = float(m1.group(1))
@@ -311,7 +302,6 @@ def parse_coin_and_amount(raw_text):
         if coin_key and amt > 0:
             return coin_key, amt
 
-    # Pattern 2: <coin> <amount> (e.g., "ton 1", "gram 2")
     m2 = re.fullmatch(r"([a-zA-Z]+)\s+([0-9]+(?:\.[0-9]+)?)", cleaned)
     if m2:
         coin_key = ALIASES.get(m2.group(1))
@@ -323,11 +313,12 @@ def parse_coin_and_amount(raw_text):
 
 
 def build_single_coin_text(coin_key, amount, user_id):
-    c = COIN_BY_KEY.get(coin_key)
+    canonical_key = ALIASES.get(coin_key, coin_key)
+    c = COIN_BY_KEY.get(canonical_key)
     if not c:
         return None
-    rates = get_rates_for_keys([coin_key])
-    data = rates.get(coin_key)
+    rates = get_rates_for_keys([canonical_key])
+    data = rates.get(canonical_key)
 
     title = t(user_id, "single_title").format(name=c["name"], short=c["short"])
     unit_price = data["price"] if data and data["price"] is not None else None
@@ -434,9 +425,10 @@ def send_price_response(message, scope, amount=1.0):
 @bot.message_handler(commands=["start", "help"])
 def start_handler(message):
     uid = message.from_user.id
+    body = t(uid, "welcome_body").format(bullet=pe("➡️"))
     text = (
         f"{pe('🤖')} <b>{t(uid, 'welcome_title')}</b>\n\n"
-        f"{t(uid, 'welcome_body')}"
+        f"{body}"
     )
     bot.reply_to(message, text, parse_mode="HTML")
 
@@ -497,7 +489,6 @@ def price_cmd(message):
 def text_router(message):
     scope, amount = parse_coin_and_amount(message.text)
     if scope is None:
-        # Random / general rate queries show all rates
         send_price_response(message, "all", 1.0)
     else:
         send_price_response(message, scope, amount)
@@ -512,7 +503,7 @@ def callback_handler(call):
     if action == "close":
         owner_id = int(parts[1])
         if uid != owner_id:
-            bot.answer_callback_query(call.id, t(uid, "not_owner"), show_alert=True)
+            bot.answer_callback_query(call.id, f"{pe('⚠️')} {t(uid, 'not_owner')}", show_alert=True)
             return
         bot.delete_message(call.message.chat.id, call.message.message_id)
         return
@@ -521,7 +512,7 @@ def callback_handler(call):
         chosen_lang = parts[1]
         owner_id = int(parts[2])
         if uid != owner_id:
-            bot.answer_callback_query(call.id, t(uid, "not_owner"), show_alert=True)
+            bot.answer_callback_query(call.id, f"{pe('⚠️')} {t(uid, 'not_owner')}", show_alert=True)
             return
         if chosen_lang in ("en", "ru"):
             USER_LANG[uid] = chosen_lang
@@ -544,7 +535,7 @@ def callback_handler(call):
         amount = float(parts[2])
         owner_id = int(parts[3])
         if uid != owner_id:
-            bot.answer_callback_query(call.id, t(uid, "not_owner"), show_alert=True)
+            bot.answer_callback_query(call.id, f"{pe('⚠️')} {t(uid, 'not_owner')}", show_alert=True)
             return
 
         new_text = (
